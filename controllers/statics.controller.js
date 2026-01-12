@@ -264,3 +264,84 @@ export const getTodayReport = async (req, res) => {
         });
     }
 };
+
+
+export const getStudentReport = async (req, res) => {
+    try {
+        const result = await Student.aggregate([
+            {
+                $match: { status: "Active" } // Only count active students
+            },
+            {
+                $facet: {
+                    // Count by Class
+                    byClass: [
+                        {
+                            $group: {
+                                _id: "$className",
+                                count: { $sum: 1 }
+                            }
+                        },
+                        { $sort: { _id: 1 } }
+                    ],
+                    
+                    // Count by Batch (include className)
+                    byBatch: [
+                        {
+                            $match: { 
+                                batch: { $exists: true, $ne: null, $ne: "" } 
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$batch",
+                                className: { $first: "$className" },
+                                count: { $sum: 1 }
+                            }
+                        },
+                        { $sort: { _id: 1 } }
+                    ],
+                    
+                    // Count by Course (include className)
+                    byCourse: [
+                        {
+                            $match: { 
+                                course: { $exists: true, $ne: null, $ne: "" } 
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$course",
+                                className: { $first: "$className" },
+                                count: { $sum: 1 }
+                            }
+                        },
+                        { $sort: { _id: 1 } }
+                    ],
+                    
+                    // Total count
+                    total: [
+                        { $count: "count" }
+                    ]
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                byClass: result[0].byClass,
+                byBatch: result[0].byBatch,
+                byCourse: result[0].byCourse,
+                totalStudents: result[0].total[0]?.count || 0
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching student counts",
+            error: error.message
+        });
+    }
+};

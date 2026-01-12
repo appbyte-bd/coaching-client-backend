@@ -14,6 +14,7 @@ export const createBanner = async (req, res) => {
     }
 };
 
+
 export const getBanners = async (req, res) => {
     try {
         const banners = await Banner.find();

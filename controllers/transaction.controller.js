@@ -4,15 +4,15 @@ import { ok, fail } from "../utils/response.js"
 
 export const createTransaction = async (req, res) => {
     try {
-        const { title, amount, note, date } = req.body;
-        if (!title || !amount || !date) {
-            return fail(res, "Title, amount, date are required");
+        const { category, amount, note, date } = req.body;
+        if (!category || !amount) {
+            return fail(res, "Category, amount are required");
         }
         await TransactionModel.create({
-            title,
+            title: category,
             amount,
-            date,
-            note
+            note,
+            date
         });
 
         return ok(res, { message: "Transaction created successfully" });
@@ -56,7 +56,7 @@ export const getAllTransactions = async (req, res) => {
         const endDate = new Date(ty, tm - 1, td, 23, 59, 59);
 
         // Get expenses (only title, date, amount)
-        const allExpenses = await TransactionModel.find().select('title date amount');
+        const allExpenses = await TransactionModel.find();
         const expenses = allExpenses.filter(e => {
             const d = convertToComparable(e.date);
             return d >= fromComp && d <= toComp;
@@ -65,14 +65,19 @@ export const getAllTransactions = async (req, res) => {
         // Get payments and format as incomes
         const payments = await PaymentModel.find({
             createdAt: { $gte: startDate, $lte: endDate }
-        });
+        }).populate('s_id');
 
         const incomes = payments.map(p => {
             const d = new Date(p.createdAt);
             return {
-                title: `${p.feeType} Payment`,
+                name: p.s_id?.name,
+                id: p.s_id?.id,
+                className: p.s_id?.className,
+                batch: p.s_id?.batch || p.s_id?.course,
+                feeType: p.feeType,
                 date: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`,
-                amount: p.paid
+                amount: p.paid,
+                recievedBy: p.recievedBy,
             };
         });
 
@@ -93,9 +98,11 @@ export const getAllTransactions = async (req, res) => {
     }
 };
 
+
+
 const isValidDate = (dateStr) => {
     if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return false;
-    
+
     const [day, month, year] = dateStr.split('/').map(Number);
     const date = new Date(year, month - 1, day);
 
@@ -107,7 +114,7 @@ const isValidDate = (dateStr) => {
 
 export const getAllExpence = async (req, res) => {
     try {
-        const { from, to, page = 1, limit = 20 } = req.body;
+        const { from, to, category, page = 1, limit = 20 } = req.body;
 
 
         // Validate pagination parameters
@@ -122,6 +129,9 @@ export const getAllExpence = async (req, res) => {
 
         // Build query object
         let query = {};
+        if (category && category.trim()) {
+            query.title = { $regex: category.trim(), $options: 'i' };
+        }
 
         // If date range is provided, add date filter
         if (from || to) {
@@ -151,7 +161,7 @@ export const getAllExpence = async (req, res) => {
             }
 
             // Get all transactions and filter by date range
-            const allTransactions = await TransactionModel.find();
+            const allTransactions = await TransactionModel.find(query);
 
             const filteredIds = allTransactions
                 .filter(transaction => {

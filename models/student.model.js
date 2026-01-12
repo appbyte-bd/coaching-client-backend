@@ -51,11 +51,12 @@ const studentSchema = new mongoose.Schema({
     },
     guardianName: {
         type: String,
-        required: true,
+        trim: true
     },
     guardianNumber: {
         type: String,
         required: true,
+        trim: true
     },
     studentNumber: String,
     address: String,

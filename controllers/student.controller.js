@@ -1,4 +1,6 @@
 import Student from "../models/student.model.js";
+import Result from "../models/result.model.js";
+import Payment from "../models/payment.model.js";
 import Batch from "../models/batch.model.js";
 import Course from "../models/course.model.js";
 import { validateStudent } from "../utils/validate.student.js";
@@ -22,9 +24,9 @@ export const createStudent = async (req, res) => {
         if (!batch && !course) {
             return res.status(400).json({ success: false, error: "Invalide Batch or Courde id" });
         }
-        if (batch && batch.monthlyFee !== studentData.monthlyFee &&  req.admin?.type !== "admin") {
+        if (batch && batch.monthlyFee !== studentData.monthlyFee && req.admin?.type !== "admin") {
             studentData.isVerified = false;
-        } else if (course && course.courseFee !== studentData.courseFee &&  req.admin?.type !== "admin") {
+        } else if (course && course.courseFee !== studentData.courseFee && req.admin?.type !== "admin") {
             studentData.isVerified = false;
         }
 
@@ -220,13 +222,14 @@ export const getAllCourseStudents = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
 export const getAllClassStudents = async (req, res) => {
     try {
         const students = await Student.find({
             className: req.params.class,
             status: "Active"
         })
-            .sort({ createdAt: -1 })
+            .sort({ id: 1 })
             .select("-password -schoolName -schoolRoll -studentNumber -address -status -note");
 
         const baseUrl = `${req.protocol}://${req.get("host")}`;
@@ -254,6 +257,11 @@ export const getAllClassStudents = async (req, res) => {
 export const getStudentById = async (req, res) => {
     try {
         const student = await Student.findById(req.params.id);
+        if (!student) {
+            return res.status(404).json({ success: false, error: "Student not found" });
+        }
+        const results = await Result.find({ 'students.id': student.id }).sort({ date: -1 });
+        const payments = await Payment.find({ s_id: student._id }).sort({ date: -1 });
         let studentWithImageUrl = student;
         if (student.img) {
             const baseUrl = `${req.protocol}://${req.get("host")}`;
@@ -263,7 +271,7 @@ export const getStudentById = async (req, res) => {
                 // images: product.images.map(img => getImageUrl(img, baseUrl))
             };
         }
-        res.status(200).json({ success: true, message: "student fetched successfully", data: studentWithImageUrl });
+        res.status(200).json({ success: true, message: "student fetched successfully", data: studentWithImageUrl, results, payments });
     } catch (error) {
         console.error("❌ Error fetch student", error);
         res.status(500).json({ success: false, error: error.message });
@@ -316,9 +324,10 @@ export const updateStudent = async (req, res) => {
         if (!batch) {
             return res.status(400).json({ success: false, error: "Batch Not Found" });
         }
-        if (batch.monthlyFee !== studentData.monthlyFee) {
+        if (batch.monthlyFee !== studentData.monthlyFee && req.admin?.type !== "admin") {
             studentData.isVerified = false;
         }
+
         if (studentData.course) studentData.course = "";
         if (studentData.courseId) studentData.courseId = "";
         if (studentData.courseFee) studentData.courseFee = "";

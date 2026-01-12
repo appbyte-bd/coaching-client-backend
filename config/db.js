@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
-const URL = process.env.databaseURL || "mongodb://localhost:27017/client1";
+const URL = process.env.databaseURL;
 
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(URL, {
-      authSource: 'admin'
+      replicaSet: 'rs0',
+      authSource: 'admin',
+      directConnection: true,
     })
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {

@@ -38,6 +38,7 @@ export const formatMonthList = (monthNumbers, year) => {
 };
 
 export const createPayment = async (req, res) => {
+    console.log(req.admin);
     try {
         const paymentData = req.body;
         if (!validatePayment(paymentData)) {
@@ -80,7 +81,7 @@ export const createPayment = async (req, res) => {
             paymentData.discount = discount;
             paymentData.due = due;
 
-            if (parseInt(paymentData?.discount) > 0 &&  req.admin?.type !== "admin" ) {
+            if (parseInt(paymentData?.discount) > 0 && req.admin?.type !== "admin") {
                 paymentData.isVerified = false
             }
             paymentData.recievedBy = req.admin?.name || "admin"
@@ -114,7 +115,7 @@ export const createPayment = async (req, res) => {
                 paymentData.discount = discount;
                 paymentData.due = due;
 
-                if (Number(paymentData?.discount) > 0 &&  req.admin?.type !== "admin") {
+                if (Number(paymentData?.discount) > 0 && req.admin?.type !== "admin") {
                     paymentData.isVerified = false
                 }
                 paymentData.recievedBy = req.admin?.name || "admin"
@@ -138,7 +139,7 @@ export const createPayment = async (req, res) => {
                 paymentData.discount = discount;
                 paymentData.due = due;
 
-                if (Number(paymentData?.discount) > 0 &&  req.admin?.type !== "admin") {
+                if (Number(paymentData?.discount) > 0 && req.admin?.type !== "admin") {
                     paymentData.isVerified = false
                 }
                 paymentData.recievedBy = req.admin?.name || "admin"
@@ -164,7 +165,7 @@ export const createPayment = async (req, res) => {
             paymentData.discount = discount;
             paymentData.due = due;
 
-            if (Number(paymentData?.discount) > 0 &&  req.admin?.type !== "admin") {
+            if (Number(paymentData?.discount) > 0 && req.admin?.type !== "admin") {
                 paymentData.isVerified = false
             }
             paymentData.recievedBy = req.admin?.name || "admin"

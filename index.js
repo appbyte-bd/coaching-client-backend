@@ -29,12 +29,12 @@ import contactRoutes from "./routes/contact.route.js";
 import applicationRoutes from "./routes/application.route.js";
 import ceoRoutes from "./routes/ceo.route.js";
 import webSettingRoutes from "./routes/webSetting.route.js";
-
+import expenceCategoryRoutes from "./routes/expenceCategory.route.js";
 import seedRoutes from "./utils/seed.student.js";
 
 
 dotenv.config();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 connectDB();
 
@@ -93,6 +93,7 @@ app.use("/application", applicationRoutes);
 app.use("/ceo", ceoRoutes);
 app.use("/seed", seedRoutes);
 app.use("/webSetting", webSettingRoutes);
+app.use("/expenceCategory", expenceCategoryRoutes);
 
 
 app.use((err, req, res, next) => {

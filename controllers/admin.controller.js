@@ -21,6 +21,7 @@ export const adminLogin = async (req, res) => {
             secure: true,
             sameSite: "strict",
             maxAge: 1 * 24 * 60 * 60 * 1000,
+            path: "/"
         });
         const { password: adminPassword, ...others } = admin.toObject();
 

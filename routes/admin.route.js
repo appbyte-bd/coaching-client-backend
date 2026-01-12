@@ -11,7 +11,7 @@ router.get("/validate", authenticate, adminController.authAdmin);
 
 router.post("/add", authenticate, authorize('admin'), adminController.createAdmin);
 router.get("/all", authenticate, authorize('admin'), adminController.getAllAdmins);
-router.put("/:id", authenticate, authorize('admin'), adminController.updateAdmin);
+router.put("/:id", adminController.updateAdmin);
 router.delete("/:id", authenticate, authorize('admin'), adminController.deleteAdmin);
 
 export default router;

@@ -1,4 +1,3 @@
-import e from "express";
 import Subject from "../models/subject.model.js";
 import { ok, fail } from "../utils/response.js"
 
